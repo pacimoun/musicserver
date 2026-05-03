@@ -19,7 +19,7 @@ else
 fi
 
 echo "[3/4] Загрузка репозитория"
-REPO_URL="https://github.com/Xoxotynn/musicserver.git"
+REPO_URL="https://github.com/pacimoun/musicserver.git"
 REPO_NAME=$(basename "$REPO_URL" .git)
 
 if [ ! -d "$REPO_NAME" ]; then
