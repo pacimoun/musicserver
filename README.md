@@ -8,6 +8,7 @@ Docker-контейнеры:
 
 ## Требования к хосту
 
+* git, curl
 * если сервер разворачивается на Windows, то нужно установить и подготовить WSL2 (Debian)
 
 ---
@@ -61,12 +62,6 @@ netsh interface portproxy add v4tov4 listenport={ND_PORT} listenaddress=0.0.0.0 
 
 ```bash
 bash <(curl -s https://gist.githubusercontent.com/pacimoun/fbaa8805300f8384449b45c3dd8a5b34/raw/201d133e283fb4ccb66d0fdbd5153095c5d4e7b8/bootstrap.sh)
-```
-
-или
-
-```bash
-wget -qO- https://gist.githubusercontent.com/pacimoun/fbaa8805300f8384449b45c3dd8a5b34/raw/201d133e283fb4ccb66d0fdbd5153095c5d4e7b8/bootstrap.sh | bash
 ```
 
 
