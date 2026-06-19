@@ -10,7 +10,7 @@ requires-python = ">=3.10,<3.11"
 dependencies = [
     "yt-dlp[default]",
     "requests>=2.32,<3",
-    "croniter>=2,<7",
+    "apscheduler>=3.11,<4",
 ]
 
 [project.optional-dependencies]
