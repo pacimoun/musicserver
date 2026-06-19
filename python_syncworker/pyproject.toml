@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "syncworker"
+version = "0.1.0"
+description = "SoundCloud to Navidrome sync worker"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "yt-dlp[default]",
+    "requests>=2.32,<3",
+    "croniter>=2,<7",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "types-requests",
+    "pip-tools",
+]
+
+[project.scripts]
+syncworker = "syncworker.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

@@ -31,3 +31,20 @@ services:
       - ./music:/music
     depends_on:
       - navidrome
+
+  python-sync-worker:
+    build: ./python_syncworker
+    user: 1000:1000
+    env_file: .env
+    restart: unless-stopped
+    environment:
+      MUSIC_DIR: /music
+      PLAYLISTS_DIR: /music/playlists
+      ARCHIVE_FILE: /music/archive.txt
+      ND_BASE_URL: http://navidrome:4533/rest
+      XDG_CACHE_HOME: /tmp/.cache
+      TZ: Asia/Tomsk
+    volumes:
+      - ./music:/music
+    depends_on:
+      - navidrome

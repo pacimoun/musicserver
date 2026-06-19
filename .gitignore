@@ -2,3 +2,9 @@
 music/
 data/
 worker/scripts/likes_data.json
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.pyc
