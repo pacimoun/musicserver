@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import fileinput
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -71,7 +72,11 @@ class FilesystemAdapter:
         if not self.playlists_dir.exists():
             return
 
-        for path in self.playlists_dir.glob("*.m3u"):
+        for path in self.playlists_dir.iterdir():
+            if path.is_dir():
+                shutil.rmtree(path)
+                continue
+
             path.unlink()
 
     def write_m3u_playlist(self, title: str, track_paths: tuple[str, ...]) -> Path:
