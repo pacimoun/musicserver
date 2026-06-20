@@ -24,7 +24,3 @@ class StarredItems:
     song_ids: tuple[str, ...]
     album_ids: tuple[str, ...]
     artist_ids: tuple[str, ...]
-
-    @property
-    def all_ids(self) -> tuple[str, ...]:
-        return self.song_ids + self.album_ids + self.artist_ids

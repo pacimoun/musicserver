@@ -7,13 +7,9 @@ from dataclasses import dataclass
 class LibraryTrack:
     soundcloud_id: str
     navidrome_id: str
-    soundcloud_url: str | None
+    soundcloud_url: str
     title: str
     navidrome_path: str
-
-    @property
-    def is_present_in_soundcloud(self) -> bool:
-        return self.soundcloud_url is not None
 
 
 @dataclass(frozen=True)

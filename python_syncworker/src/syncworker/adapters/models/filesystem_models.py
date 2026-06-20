@@ -9,10 +9,6 @@ class LocalTrack:
     soundcloud_id: str
     path: Path
 
-    @property
-    def filename(self) -> str:
-        return self.path.name
-
 
 @dataclass(frozen=True)
 class ArchiveEntry:

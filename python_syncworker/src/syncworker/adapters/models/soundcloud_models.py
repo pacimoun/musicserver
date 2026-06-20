@@ -37,7 +37,3 @@ class SoundCloudLibrary:
 @dataclass(frozen=True)
 class SoundCloudDownloadResult:
     exit_code: int
-
-    @property
-    def success(self) -> bool:
-        return self.exit_code == 0

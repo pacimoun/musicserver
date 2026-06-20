@@ -34,13 +34,6 @@ class FilesystemAdapter:
 
         return tuple(tracks)
 
-    def find_track_by_soundcloud_id(self, soundcloud_id: str) -> LocalTrack | None:
-        for track in self.list_tracks():
-            if track.soundcloud_id == soundcloud_id:
-                return track
-
-        return None
-
     def read_archive(self) -> tuple[ArchiveEntry, ...]:
         if not self.archive_file.exists():
             return ()
@@ -88,10 +81,6 @@ class FilesystemAdapter:
         lines.extend(f"../{track_path}" for track_path in track_paths)
         playlist_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
         return playlist_file
-
-    def existing_archive_entries(self) -> tuple[ArchiveEntry, ...]:
-        local_ids = {track.soundcloud_id for track in self.list_tracks()}
-        return tuple(entry for entry in self.read_archive() if entry.item_id in local_ids)
 
     @staticmethod
     def delete_track(track: LocalTrack) -> None:
