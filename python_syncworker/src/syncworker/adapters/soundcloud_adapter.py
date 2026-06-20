@@ -5,7 +5,7 @@ from typing import Any
 
 from yt_dlp import YoutubeDL  # type: ignore[import-untyped]
 
-from syncworker.adapters.models.soundcloud import (
+from syncworker.adapters.models.soundcloud_models import (
     SoundCloudDownloadResult,
     SoundCloudLibrary,
     SoundCloudPlaylist,
@@ -13,7 +13,7 @@ from syncworker.adapters.models.soundcloud import (
 )
 
 
-class SoundCloudClient:
+class SoundCloudAdapter:
     def __init__(self, url: str):
         self.url = url
 

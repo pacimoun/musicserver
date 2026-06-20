@@ -7,13 +7,13 @@ from typing import Any
 
 import requests
 
-from syncworker.adapters.models.navidrome import NavidromeSong, ScanStatus, StarredItems
+from syncworker.adapters.models.navidrome_models import NavidromeSong, ScanStatus, StarredItems
 
 
 SOUNDCLOUD_ID_PATTERN = re.compile(r"\[(?P<id>\d+)]")
 
 
-class NavidromeClient:
+class NavidromeAdapter:
     def __init__(
         self,
         base_url: str,
@@ -170,7 +170,7 @@ class NavidromeClient:
             return None
 
         path = str(raw_path)
-        soundcloud_id = NavidromeClient._extract_soundcloud_id(path)
+        soundcloud_id = NavidromeAdapter._extract_soundcloud_id(path)
         if soundcloud_id is None:
             return None
 

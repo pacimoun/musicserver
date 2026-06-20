@@ -1,24 +1,24 @@
 from __future__ import annotations
 
-from syncworker.adapters.models.navidrome import NavidromeSong
-from syncworker.adapters.models.soundcloud import SoundCloudLibrary, SoundCloudTrack, SoundCloudPlaylist
-from syncworker.adapters.navidrome import NavidromeClient
-from syncworker.adapters.soundcloud import SoundCloudClient
-from syncworker.models.library import LibraryPlaylist, LibraryTrack, MusicLibrary
+from syncworker.adapters.models.navidrome_models import NavidromeSong
+from syncworker.adapters.models.soundcloud_models import SoundCloudLibrary, SoundCloudPlaylist, SoundCloudTrack
+from syncworker.adapters.navidrome_adapter import NavidromeAdapter
+from syncworker.adapters.soundcloud_adapter import SoundCloudAdapter
+from syncworker.models.library_models import LibraryPlaylist, LibraryTrack, MusicLibrary
 
 
 class LibraryRepository:
     def __init__(
         self,
-        soundcloud_client: SoundCloudClient,
-        navidrome_client: NavidromeClient,
+        soundcloud_adapter: SoundCloudAdapter,
+        navidrome_adapter: NavidromeAdapter,
     ):
-        self.soundcloud_client = soundcloud_client
-        self.navidrome_client = navidrome_client
+        self.soundcloud_adapter = soundcloud_adapter
+        self.navidrome_adapter = navidrome_adapter
 
     def get_library(self) -> MusicLibrary:
-        soundcloud_library = self.soundcloud_client.get_library()
-        navidrome_songs = self.navidrome_client.find_songs_by_soundcloud_ids(
+        soundcloud_library = self.soundcloud_adapter.get_library()
+        navidrome_songs = self.navidrome_adapter.find_songs_by_soundcloud_ids(
             tuple(track.id for track in soundcloud_library.all_tracks)
         )
 

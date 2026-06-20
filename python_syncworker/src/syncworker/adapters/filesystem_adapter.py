@@ -5,12 +5,12 @@ import re
 import sys
 from pathlib import Path
 
-from syncworker.adapters.models.filesystem import ArchiveEntry, LocalTrack
+from syncworker.adapters.models.filesystem_models import ArchiveEntry, LocalTrack
 
 SOUNDCLOUD_ID_PATTERN = re.compile(r"\[(?P<id>\d+)]")
 INVALID_PLAYLIST_FILENAME_CHARS = str.maketrans("", "", '/\\?%*:|"<>')
 
-class FilesystemClient:
+class FilesystemAdapter:
     def __init__(self, music_dir: Path, playlists_dir: Path, archive_file: Path):
         self.music_dir = music_dir
         self.playlists_dir = playlists_dir
