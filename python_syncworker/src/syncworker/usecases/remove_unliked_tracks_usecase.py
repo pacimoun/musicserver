@@ -16,4 +16,4 @@ class RemoveUnlikedTracksUseCase:
 
         for track in self.filesystem_adapter.list_tracks():
             if track.soundcloud_id not in actual_soundcloud_ids:
-                FilesystemAdapter.delete_track(track)
+                self.filesystem_adapter.delete_track(track)

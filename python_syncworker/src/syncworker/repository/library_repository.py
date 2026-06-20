@@ -32,53 +32,62 @@ class LibraryRepository:
         soundcloud_library: SoundCloudLibrary,
         navidrome_songs: tuple[NavidromeSong, ...],
     ) -> MusicLibrary:
+        navidrome_songs_by_soundcloud_id = {song.soundcloud_id: song for song in navidrome_songs}
+
         return MusicLibrary(
-            liked_tracks=LibraryRepository._map_liked_tracks(soundcloud_library.liked_tracks, navidrome_songs),
+            liked_tracks=LibraryRepository._map_liked_tracks(
+                soundcloud_library.liked_tracks,
+                navidrome_songs_by_soundcloud_id,
+            ),
             playlists=tuple(
-                LibraryRepository._map_playlist(playlist, navidrome_songs)
+                LibraryRepository._map_playlist(playlist, navidrome_songs_by_soundcloud_id)
                 for playlist in soundcloud_library.playlists
             ),
         )
 
     @staticmethod
     def _map_liked_tracks(
-            soundcloud_liked_tracks: tuple[SoundCloudTrack, ...],
-            navidrome_songs: tuple[NavidromeSong, ...]
+        soundcloud_liked_tracks: tuple[SoundCloudTrack, ...],
+        navidrome_songs_by_soundcloud_id: dict[str, NavidromeSong],
     ) -> tuple[LibraryTrack, ...]:
         liked_tracks: list[LibraryTrack] = []
         for soundcloud_track in soundcloud_liked_tracks:
-            navidrome_song = next(song for song in navidrome_songs if song.soundcloud_id == soundcloud_track.id)
-            if navidrome_song is not None:
-                liked_tracks.append(
-                    LibraryTrack(
-                        soundcloud_id=soundcloud_track.id,
-                        navidrome_id=navidrome_song.id,
-                        soundcloud_url=soundcloud_track.url,
-                        title=navidrome_song.title,
-                        navidrome_path=navidrome_song.path,
-                    )
+            navidrome_song = navidrome_songs_by_soundcloud_id.get(soundcloud_track.id)
+            if navidrome_song is None:
+                continue
+
+            liked_tracks.append(
+                LibraryTrack(
+                    soundcloud_id=soundcloud_track.id,
+                    navidrome_id=navidrome_song.id,
+                    soundcloud_url=soundcloud_track.url,
+                    title=navidrome_song.title,
+                    navidrome_path=navidrome_song.path,
                 )
+            )
 
         return tuple(liked_tracks)
 
     @staticmethod
     def _map_playlist(
-            soundcloud_playlist: SoundCloudPlaylist,
-            navidrome_songs: tuple[NavidromeSong, ...]
+        soundcloud_playlist: SoundCloudPlaylist,
+        navidrome_songs_by_soundcloud_id: dict[str, NavidromeSong],
     ) -> LibraryPlaylist:
         tracks: list[LibraryTrack] = []
         for soundcloud_track in soundcloud_playlist.tracks:
-            navidrome_track = next(ns for ns in navidrome_songs if ns.soundcloud_id == soundcloud_track.id)
-            if navidrome_track is not None:
-                tracks.append(
-                    LibraryTrack(
-                        soundcloud_id=soundcloud_track.id,
-                        navidrome_id=navidrome_track.id,
-                        soundcloud_url=soundcloud_track.url,
-                        title=navidrome_track.title,
-                        navidrome_path=navidrome_track.path,
-                    )
+            navidrome_track = navidrome_songs_by_soundcloud_id.get(soundcloud_track.id)
+            if navidrome_track is None:
+                continue
+
+            tracks.append(
+                LibraryTrack(
+                    soundcloud_id=soundcloud_track.id,
+                    navidrome_id=navidrome_track.id,
+                    soundcloud_url=soundcloud_track.url,
+                    title=navidrome_track.title,
+                    navidrome_path=navidrome_track.path,
                 )
+            )
 
         return LibraryPlaylist(
             soundcloud_id=soundcloud_playlist.id,
