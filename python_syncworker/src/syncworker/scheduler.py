@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 
-from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.triggers.cron import CronTrigger
+from apscheduler.schedulers.blocking import BlockingScheduler  # type: ignore[import-untyped]
+from apscheduler.triggers.cron import CronTrigger  # type: ignore[import-untyped]
 
 from syncworker.config import Config
 

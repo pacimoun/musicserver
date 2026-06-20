@@ -14,7 +14,6 @@ class Config:
     navidrome_base_url: str
     navidrome_user: str
     navidrome_password: str
-    navidrome_salt: str
 
     soundcloud_url: str
     sync_schedule: str
@@ -30,7 +29,6 @@ class Config:
             navidrome_base_url=required_env("ND_BASE_URL"),
             navidrome_user=required_env("ND_USER"),
             navidrome_password=required_env("ND_PASS"),
-            navidrome_salt=required_env("ND_SALT"),
             soundcloud_url=required_env("SOUNDCLOUD_URL"),
             sync_schedule=required_env("SYNC_SCHEDULE"),
             timezone=required_env("TZ"),
