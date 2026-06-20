@@ -32,7 +32,7 @@ class FilesystemAdapter:
 
             tracks.append(LocalTrack(soundcloud_id=track_id, path=path))
 
-        return tuple(sorted(tracks, key=lambda track: track.path.name))
+        return tuple(tracks)
 
     def find_track_by_soundcloud_id(self, soundcloud_id: str) -> LocalTrack | None:
         for track in self.list_tracks():
@@ -74,9 +74,6 @@ class FilesystemAdapter:
 
                 sys.stdout.write(raw_line)
 
-    def delete_track(self, track: LocalTrack) -> None:
-        track.path.unlink(missing_ok=True)
-
     def delete_m3u_playlists(self) -> None:
         if not self.playlists_dir.exists():
             return
@@ -84,17 +81,21 @@ class FilesystemAdapter:
         for path in self.playlists_dir.glob("*.m3u"):
             path.unlink()
 
-    def write_m3u_playlist(self, title: str, tracks: tuple[LocalTrack, ...]) -> Path:
+    def write_m3u_playlist(self, title: str, track_paths: tuple[str, ...]) -> Path:
         self.playlists_dir.mkdir(parents=True, exist_ok=True)
         playlist_file = self.playlists_dir / f"{self.sanitize_playlist_filename(title)}.m3u"
         lines = ["#EXTM3U"]
-        lines.extend(f"../{track.filename}" for track in tracks)
+        lines.extend(f"../{track_path}" for track_path in track_paths)
         playlist_file.write_text("\n".join(lines) + "\n", encoding="utf-8")
         return playlist_file
 
     def existing_archive_entries(self) -> tuple[ArchiveEntry, ...]:
         local_ids = {track.soundcloud_id for track in self.list_tracks()}
         return tuple(entry for entry in self.read_archive() if entry.item_id in local_ids)
+
+    @staticmethod
+    def delete_track(track: LocalTrack) -> None:
+        track.path.unlink(missing_ok=True)
 
     @staticmethod
     def sanitize_playlist_filename(title: str) -> str:
