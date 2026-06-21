@@ -34,3 +34,7 @@ target-version = "py310"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "integration: tests that verify integration with local or external systems",
+    "navidrome: tests that require a running Navidrome instance",
+]
