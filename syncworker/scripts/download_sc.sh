@@ -5,7 +5,8 @@ LOG_FILE="/tmp/yt-dlp-last.log"
 
 echo "--- Шаг 1: Загрузка новых треков из SoundCloud ---"
 yt-dlp -i --download-archive "$ARCHIVE_FILE" \
-  --format "bestaudio/best" --extract-audio --audio-quality 0 \
+  --format 'download/bestaudio[format_id!$=_preview]/best[format_id!$=_preview]' \
+  --extract-audio --audio-quality 0 \
   --embed-metadata --embed-thumbnail \
   --output "$MUSIC_DIR/[%(id)s] %(title)s.%(ext)s" \
   "$SOUNDCLOUD_URL" 2>&1 | tee "$LOG_FILE"

@@ -3,10 +3,29 @@ source "$(dirname "$0")/config.sh"
 
 echo "--- Шаг 3: Синхронизация лайков и создание плейлистов ---"
 
-yt-dlp --flat-playlist --dump-single-json "$SOUNDCLOUD_URL" > "$TEMP_LIKES_DATA_FILE"
+SNAPSHOT_DIR=${1:-}
+if [[ -z "$SNAPSHOT_DIR" ]]; then
+    SNAPSHOT_DIR=$(mktemp -d) || exit 1
+    trap 'rm -r -- "$SNAPSHOT_DIR"' EXIT
+    "$(dirname "$0")/prepare_sc_structure.sh" "$SNAPSHOT_DIR" || exit 1
+fi
+ENTRIES_FILE="$SNAPSHOT_DIR/entries.jsonl"
+VALID_IDS_FILE="$SNAPSHOT_DIR/track_ids"
+if [[ ! -r "$ENTRIES_FILE" || ! -r "$VALID_IDS_FILE" ]]; then
+    echo "Список лайков SoundCloud не подготовлен" >&2
+    exit 1
+fi
 
-VALID_IDS_FILE="/tmp/valid_sc_ids.txt"
-> "$VALID_IDS_FILE"
+declare -A LOCAL_TRACKS
+for file in "$MUSIC_DIR"/*; do
+    filename=${file##*/}
+    if [[ -f "$file" && "$filename" =~ ^\[([0-9]+)\]\  ]]; then
+        case "$filename" in
+            *.part|*.part-Frag*|*.ytdl) continue ;;
+        esac
+        LOCAL_TRACKS[${BASH_REMATCH[1]}]="$filename"
+    fi
+done
 
 echo "Очистка старых лайков в Navidrome"
 
@@ -38,10 +57,10 @@ echo "Добавление новых лайков"
 
 rm -f "$PLAYLISTS_DIR"/*.m3u
 
-jq -c '.entries | reverse | .[]' "$TEMP_LIKES_DATA_FILE" | while read -r entry; do
-    item_url=$(echo "$entry" | jq -r '.url')
-    id=$(echo "$entry" | jq -r '.id')
-    raw_title=$(echo "$entry" | jq -r '.title')
+while IFS= read -r entry; do
+    item_url=$(jq -r '.url' <<< "$entry")
+    id=$(jq -r '.id' <<< "$entry")
+    raw_title=$(jq -r '.title' <<< "$entry")
     clean_title=$(echo "$raw_title" | tr -d '/\?%*:|"<>' | sed 's/^[.-]*//')
     [ -z "$clean_title" ] && clean_title="unnamed_playlist_${id}"
 
@@ -50,28 +69,31 @@ jq -c '.entries | reverse | .[]' "$TEMP_LIKES_DATA_FILE" | while read -r entry; 
         M3U_FILE="$PLAYLISTS_DIR/$clean_title.m3u"
         echo "#EXTM3U" > "$M3U_FILE"
 
-        yt-dlp --flat-playlist --get-id "$item_url" | while read -r track_id; do
-            echo "$track_id" >> "$VALID_IDS_FILE"
-
-            filename=$(find "$MUSIC_DIR" -maxdepth 1 -type f | grep -F "[$track_id]" | sed 's|.*/||' | head -n 1)
-            [ -n "$filename" ] && echo "../$filename" >> "$M3U_FILE"
-        done
+        while IFS= read -r track_id; do
+            filename=${LOCAL_TRACKS[$track_id]}
+            [ -n "$filename" ] && printf '../%s\n' "$filename" >> "$M3U_FILE"
+        done < "$SNAPSHOT_DIR/set-$id.ids"
     else
         echo "[Like] Обработка трека: $raw_title"
 
-        echo "$id" >> "$VALID_IDS_FILE"
+        filename=${LOCAL_TRACKS[$id]}
+        if [[ -z "$filename" ]]; then
+            echo " ❌ -> Трек не найден в библиотеке"
+            continue
+        fi
+        file_size=$(stat -c %s -- "$MUSIC_DIR/$filename")
+        SEARCH_QUERY=$(printf '%s' "$raw_title" | jq -sRr @uri)
+        SEARCH_RESULT=$(curl -fsS "${ENDPOINT_SEARCH}&query=${SEARCH_QUERY}&songCount=100")
 
-        SEARCH_QUERY=$(echo "$raw_title" | jq -sRr @uri)
-        SEARCH_RESULT=$(curl -fsS "${ENDPOINT_SEARCH}&query=${SEARCH_QUERY}")
-        
         TRACK_ID=$(echo "$SEARCH_RESULT" | jq -r \
-            --arg title "$raw_title" '
-            ."subsonic-response".searchResult3.song[]? |
-            select(
-                ((.title // "") == $title)
-            ) |
-            .id
-            ' | head -n 1)
+            --arg title "$raw_title" --argjson size "$file_size" '
+            [."subsonic-response".searchResult3.song[]? | select(.title == $title)] as $same_title
+            | [$same_title[] | select(.size == $size)] as $same_file
+            | if ($same_file | length) == 1 then $same_file[0].id
+              elif ($same_title | length) == 1 then $same_title[0].id
+              else empty
+              end
+            ')
 
         if [ -n "$TRACK_ID" ] && [ "$TRACK_ID" != "null" ]; then
             curl -s "${ENDPOINT_STAR}&id=${TRACK_ID}" > /dev/null
@@ -80,19 +102,20 @@ jq -c '.entries | reverse | .[]' "$TEMP_LIKES_DATA_FILE" | while read -r entry; 
             echo " ❌ -> Трек не найден в библиотеке"
         fi
     fi
-done
+done < "$ENTRIES_FILE"
 
 echo "Очистка удаленных лайков"
 
-find "$MUSIC_DIR" -maxdepth 1 -type f -name "*\[*\].*" | while read -r file; do
-    track_id=$(echo "$file" | grep -o '\[[0-9]\+\]' | tr -d '[]')
-    
-    if ! grep -qw "$track_id" "$VALID_IDS_FILE"; then
+for file in "$MUSIC_DIR"/*\[*\].*; do
+    filename=${file##*/}
+    if [[ ! -f "$file" || ! "$filename" =~ ^\[([0-9]+)\]\  ]]; then
+        continue
+    fi
+    track_id=${BASH_REMATCH[1]}
+
+    if ! grep -Fxq "$track_id" "$VALID_IDS_FILE"; then
         echo "Удаляем: $file"
         rm -f "$file"
         sed -i "/^soundcloud $track_id$/d" "$ARCHIVE_FILE"
     fi
 done
-
-rm -f "$TEMP_LIKES_DATA_FILE"
-rm -f "$VALID_IDS_FILE"
